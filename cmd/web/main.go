@@ -4,8 +4,9 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 //handler function for home
@@ -18,11 +19,17 @@ func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	flag.Parse()
 
+	//create a new structured logger
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	// mux is our router
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 
-	log.Printf("Starting server on %s", *addr)
+	//use the logger. note the key:value pairs
+	logger.Info("Starting server on", "addr", *addr)
 	err := http.ListenAndServe(*addr, http.HandlerFunc(home))
-	log.Fatal(err)
+
+	//use the logger to log any errors
+	logger.Error(err.Error())
+	os.Exit(1)
 }
